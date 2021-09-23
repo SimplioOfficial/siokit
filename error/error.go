@@ -110,6 +110,8 @@ func HandlePgError(err error) error {
 			return NewError(CodeDbDuplication, pgErr.Detail)
 		case "23502":
 			return NewError(CodeDbReference, pgErr.Message)
+		default:
+			return e
 		}
 	}
 

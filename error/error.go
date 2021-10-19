@@ -31,7 +31,6 @@ func NewHttpError(err error) HttpError {
 	e.err = errors.New("internal error")
 	e.res = makeErrorResponse(CodeUnknown, "internal error")
 
-	fmt.Printf("%w", err)
 	var ee *Error
 	if errors.As(UnwrapErrChain(err), &ee) {
 		switch ee.Code() {
@@ -45,6 +44,8 @@ func NewHttpError(err error) HttpError {
 		case CodeJwtMalformed,
 			CodeJwtInvalid:
 			e.status = http.StatusUnauthorized
+		case CodeForbidden:
+			e.status = http.StatusForbidden
 		case CodeUnknown:
 			fallthrough
 		default:

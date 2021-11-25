@@ -4,6 +4,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"strings"
 )
 
@@ -14,7 +15,8 @@ type JWTPayloader interface {
 }
 
 type JwtPayload struct {
-	rawToken string
+	tokenType string
+	rawToken  string
 }
 
 type JwtSubject struct {
@@ -23,27 +25,33 @@ type JwtSubject struct {
 }
 
 func NewJWTPayload(jwt string) JWTPayloader {
-	return &JwtPayload{
-		rawToken: jwt,
+	p := new(JwtPayload)
+	p.rawToken = jwt
+
+	s := strings.Split(jwt, " ")
+	if len(s) > 1 {
+		p.tokenType = s[0]
+		p.rawToken = s[1]
 	}
+
+	return p
 }
 
 func (p *JwtPayload) Body(v interface{}) error {
 
-	s := strings.Split(p.rawToken, " ")[1]
-	parts := strings.Split(s, ".")
+	parts := strings.Split(p.rawToken, ".")
 
 	if len(parts) < 3 {
-		return errors.New("NOT JWT TYPE")
+		return errors.New("invalid jwt format")
 	}
 
 	b, err := decodeSegment(parts[1])
 	if err != nil {
-		return err
+		return fmt.Errorf("jwt body could not be decoded: %s", err.Error())
 	}
 
 	if err := json.Unmarshal(b, v); err != nil {
-		return err
+		return fmt.Errorf("jwt payload failed to be parsed: %s", err.Error())
 	}
 
 	return nil
@@ -54,9 +62,11 @@ func (p *JwtPayload) Subject() JwtSubject {
 		Subject string `json:"sub"`
 	}{}
 
-	_ = p.Body(&s)
-	sections := strings.Split(s.Subject, "|")
+	if err := p.Body(&s); err != nil {
+		return JwtSubject{}
+	}
 
+	sections := strings.Split(s.Subject, "|")
 	if len(sections) > 1 {
 		return JwtSubject{
 			Provider: sections[0],

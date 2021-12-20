@@ -12,4 +12,5 @@ const (
 	CodeDbDuplication   = "DuplicatedValue"
 	CodeDbReference     = "InvalidReference"
 	CodeValidation      = "Validation"
+	CodeRequestTimeout  = "RequestTimeout"
 )

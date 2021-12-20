@@ -46,6 +46,8 @@ func NewHttpError(err error) HttpError {
 			e.status = http.StatusUnauthorized
 		case CodeForbidden:
 			e.status = http.StatusForbidden
+		case CodeRequestTimeout:
+			e.status = http.StatusRequestTimeout
 		case CodeUnknown:
 			fallthrough
 		default:
